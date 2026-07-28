@@ -10,8 +10,8 @@ logs:
 	@./scripts/dev.sh logs $(filter-out $@,$(MAKECMDGOALS))
 
 migrate:
-	@echo "Migrations not yet configured — see issue #7"
-	@exit 1
+	DATABASE_URL=$${DATABASE_URL:-postgresql://yellowmind:yellowmind@localhost:5432/yellowmind} \
+	poetry run alembic upgrade head
 
 test:
 	poetry run pytest -v
