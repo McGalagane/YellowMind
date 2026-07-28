@@ -1,0 +1,22 @@
+"""Rider repository port."""
+
+from abc import ABC, abstractmethod
+from uuid import UUID
+
+from yellowmind.domain.entities import Rider
+
+
+class RiderRepository(ABC):
+    """Persistence port for riders."""
+
+    @abstractmethod
+    def get_by_id(self, rider_id: UUID) -> Rider | None:
+        """Return a rider by ID."""
+
+    @abstractmethod
+    def list_by_team(self, team_id: UUID) -> list[Rider]:
+        """Return all riders on a team."""
+
+    @abstractmethod
+    def save(self, rider: Rider) -> None:
+        """Persist a rider."""
