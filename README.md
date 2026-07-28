@@ -74,8 +74,9 @@ tests/
 Race data is derived from Wikipedia and is available under
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-Stage results are ingested at **top-10 granularity** rather than full peloton. See
-[ADR-008](docs/adr/008-open-data-sources.md) for why, and for the impact on the ML plan.
+Individual **stage** results are ingested at top-10 granularity; the full final general
+classification and the GC standings after every stage are available for the whole field.
+See [ADR-008](docs/adr/008-open-data-sources.md) for why, and for the impact on the ML plan.
 
 ## Development workflow
 

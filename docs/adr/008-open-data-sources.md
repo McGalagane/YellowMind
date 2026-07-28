@@ -31,8 +31,23 @@ Adopt a **hybrid source strategy**, with legitimacy as the primary constraint.
 - Public, documented API intended for programmatic access
 - Content licensed CC BY-SA, so attribution is sufficient for this project's use
 - Coverage verified for Tour de France editions 2015–2024
-- Stage results tables are structurally uniform: `Rank | Rider | Team | Time`
 - Per edition, three pages carry the data we need: the edition overview, `Stage 1 to Stage 11`, and `Stage 12 to Stage 21`
+
+Structure verified against the 2023 edition:
+
+| Data | Location | Shape |
+|------|----------|-------|
+| Stage schedule | Overview, `Route and stages` table | `Stage \| Date \| Course \| Distance \| Elevation gain \| Type \| Winner` |
+| Stage result (top 10) | Stage-range page | `Rank \| Rider \| Team \| Time`, `<caption>Stage N Result</caption>` |
+| GC after each stage | Stage-range page | same shape, `<caption>General classification after Stage N</caption>` |
+| Final GC (full field) | Overview, top-10 table plus collapsed continuation | 150 riders for 2023 |
+| Jersey holders per stage | Overview, `Classification leadership` table | one row per stage |
+| Points / mountains / young / team classifications | Overview | `Rank \| Rider \| Team \| Points\|Time` |
+
+Two properties make parsing tractable: tables are `wikitable plainrowheaders` with a stable
+`Rank | Rider | Team | Time` header, and the `<caption>` text distinguishes a stage result
+from a GC standing, so parsers do not depend on document order. Rider and team cells carry
+wikilinks (`./Adam_Yates`), which give stable slugs for identity mapping.
 
 **Weather source: Open-Meteo archive API** — unchanged from the original M2-05 plan.
 
@@ -51,13 +66,13 @@ A curated bulk dataset (Kaggle/GitHub) was considered as an additional primary s
 
 **Harder**
 
-- **Reduced granularity.** Wikipedia documents stage winners, top-10 finishers, GC standings, jersey classifications and abandonments, but not full-peloton finishing order. We cannot answer "who finished 87th".
+- **Reduced per-stage granularity.** Individual stage results are top-10 only, so we cannot answer "who finished 87th on stage 12". Note that the *final* general classification is available for the full field (150 riders in 2023), and GC standings are available after every stage, so overall placings are not limited to the top 10.
 - Attribution required under CC BY-SA
 - Article structure is stable but editorially maintained, so parsers need defensive handling and validation (M2-07)
 
 **Impact on the ML plan**
 
-The granularity limit was reviewed against the milestone goals and accepted. Stage-winner, GC, podium and top-10 models are all still trainable, and abandonment data still supports fatigue features. What is lost is mid-pack signal, which no milestone depends on. If models later plateau in a way traceable to this gap, revisit with a new ADR.
+The granularity limit was reviewed against the milestone goals and accepted. Stage-winner, GC, podium and top-10 models are all still trainable, and full final GC plus per-stage GC standings support fatigue and form features better than a top-10-only source would. What is lost is mid-pack *stage* signal, which no milestone depends on. If models later plateau in a way traceable to this gap, revisit with a new ADR.
 
 ## Alternatives considered
 

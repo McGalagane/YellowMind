@@ -12,7 +12,7 @@ Future milestones and issues for the YellowMind platform: Tour de France stage w
 
 Support ingestion of riders, teams, stages, results, weather, and stage profiles from the Wikipedia REST API, per [ADR-008](../adr/008-open-data-sources.md).
 
-> **Source change:** ProCyclingStats moved behind Cloudflare bot protection and is no longer a viable primary source. Wikipedia is now primary; the `PCSClient` adapter is retained as opt-in, local-only. Consequence: stage results are available at **top-10 granularity**, not full peloton.
+> **Source change:** ProCyclingStats moved behind Cloudflare bot protection and is no longer a viable primary source. Wikipedia is now primary; the `PCSClient` adapter is retained as opt-in, local-only. Consequence: individual **stage** results are top-10 only, though the full final GC and per-stage GC standings are available.
 
 ### Issue M2-01: HTTP client and rate-limited transport — **done (#16)**
 
@@ -43,7 +43,7 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Objective** | Ingest all stages for a Tour edition with profile metadata. |
 | **Description** | Parse stage number, date, type (flat/hilly/mountain/TT), distance, elevation gain, finish type, profile score. |
 | **Acceptance criteria** | 21 stages ingested for TDF 2023; `StageProfile` entity populated; validation rejects invalid stage numbers. |
-| **Technical notes** | Stage type is derived from the edition overview table (flat/hilly/mountain/TT wording). Elevation gain and climb categories are not consistently available and may be null — record that in the feature catalog rather than inventing values. |
+| **Technical notes** | The overview `Route and stages` table provides stage number, date, course, distance, elevation gain and type (e.g. "Flat stage", "Medium-mountain stage"). Individual climb categories are not available; leave null rather than inventing values, and record the gap in the feature catalog. |
 | **Dependencies** | M2-01 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
