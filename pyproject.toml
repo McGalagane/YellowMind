@@ -10,6 +10,9 @@ packages = [{ include = "yellowmind", from = "src" }]
 python = "^3.12"
 fastapi = "^0.115"
 uvicorn = { version = "^0.34", extras = ["standard"] }
+sqlalchemy = "^2.0"
+alembic = "^1.14"
+psycopg2-binary = "^2.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
@@ -25,3 +28,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "integration: integration tests requiring database",
+]
