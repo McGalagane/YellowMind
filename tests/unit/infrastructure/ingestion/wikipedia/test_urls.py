@@ -45,7 +45,8 @@ def test_rest_html_path_preserves_readable_title() -> None:
 
 
 def test_rest_html_path_escapes_unsafe_characters() -> None:
-    assert rest_html_path("Paris–Roubaix 2024") == (
+    # Written as an escape rather than a literal en dash to keep the source ASCII.
+    assert rest_html_path("Paris\u2013Roubaix 2024") == (
         "/api/rest_v1/page/html/Paris%E2%80%93Roubaix%202024"
     )
 
