@@ -2,7 +2,12 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-008](008-open-data-sources.md)
+
+PCS moved behind Cloudflare bot protection and now returns HTTP 403 with an interactive
+challenge for automated clients. Reaching the content would require circumventing that
+control, so Wikipedia became the primary source instead. The `PCSClient` adapter is
+retained as opt-in, local-only.
 
 ## Context
 

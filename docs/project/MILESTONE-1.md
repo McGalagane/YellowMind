@@ -220,7 +220,7 @@ Initial ADRs:
 |-----|-------|
 | 001 | Clean Architecture layer split |
 | 002 | PostgreSQL + DuckDB dual storage |
-| 003 | PCS as primary data source |
+| 003 | PCS as primary data source (superseded by ADR-008) |
 | 004 | Prefect for pipeline orchestration |
 | 005 | MLflow for experiment tracking |
 | 006 | Baseline-first model progression |

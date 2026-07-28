@@ -64,6 +64,20 @@ tests/
 - [Project backlog (M2–M10)](docs/project/BACKLOG.md)
 - [Milestone 1 spec](docs/project/MILESTONE-1.md)
 
+## Data sources
+
+| Source | Use | Licence |
+|--------|-----|---------|
+| [Wikipedia](https://en.wikipedia.org) REST API | Editions, stages, results, GC standings, teams, riders | CC BY-SA 4.0 |
+| [Open-Meteo](https://open-meteo.com) Archive API | Historical stage weather | CC BY 4.0 |
+
+Race data is derived from Wikipedia and is available under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+Individual **stage** results are ingested at top-10 granularity; the full final general
+classification and the GC standings after every stage are available for the whole field.
+See [ADR-008](docs/adr/008-open-data-sources.md) for why, and for the impact on the ML plan.
+
 ## Development workflow
 
 1. Pick an issue from [Milestone 1](docs/project/MILESTONE-1.md).
