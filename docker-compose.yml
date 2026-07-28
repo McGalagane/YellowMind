@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yellowmind-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-yellowmind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yellowmind}
+      POSTGRES_DB: ${POSTGRES_DB:-yellowmind}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yellowmind}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yellowmind
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.20.1
+    container_name: yellowmind-mlflow
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "${MLFLOW_PORT:-5000}:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - yellowmind
+
+  prefect:
+    image: prefecthq/prefect:3-latest
+    container_name: yellowmind-prefect
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "${PREFECT_PORT:-4200}:4200"
+    environment:
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+    networks:
+      - yellowmind
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: yellowmind-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://yellowmind:yellowmind@postgres:5432/yellowmind}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - yellowmind
+
+volumes:
+  postgres_data:
+  mlflow_data:
+
+networks:
+  yellowmind:
+    name: yellowmind
