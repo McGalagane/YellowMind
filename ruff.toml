@@ -1,0 +1,25 @@
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+    "N",
+    "ANN",
+    "S",
+    "RUF",
+]
+ignore = []
+
+[lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "ANN"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
