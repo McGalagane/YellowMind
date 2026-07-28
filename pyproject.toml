@@ -29,6 +29,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+# Allows same-named test modules in sibling packages without __init__.py files.
+addopts = ["--import-mode=importlib"]
 markers = [
     "integration: integration tests requiring database",
 ]
