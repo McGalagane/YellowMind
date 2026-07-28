@@ -10,6 +10,11 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example"
 fi
 
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
+
 cmd="${1:-up}"
 
 case "${cmd}" in
@@ -18,7 +23,7 @@ case "${cmd}" in
     echo ""
     echo "YellowMind stack running:"
     echo "  API:     http://localhost:${API_PORT:-8000}/health"
-    echo "  MLflow:  http://localhost:${MLFLOW_PORT:-5000}"
+    echo "  MLflow:  http://localhost:${MLFLOW_PORT:-5001}"
     echo "  Prefect: http://localhost:${PREFECT_PORT:-4200}"
     ;;
   down)
