@@ -20,8 +20,7 @@ class FileResponseCache:
 
     def set(self, url: str, content: str) -> None:
         """Store response content for a URL."""
-        path = self._path_for_url(url)
-        path.write_text(content, encoding="utf-8")
+        self._path_for_url(url).write_text(content, encoding="utf-8")
 
     def _path_for_url(self, url: str) -> Path:
         digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
