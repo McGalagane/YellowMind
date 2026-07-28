@@ -8,9 +8,12 @@ packages = [{ include = "yellowmind", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
+fastapi = "^0.115"
+uvicorn = { version = "^0.34", extras = ["standard"] }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
+httpx = "^0.28"
 ruff = "^0.9.9"
 pyright = "^1.1.391"
 pre-commit = "^4.1"
