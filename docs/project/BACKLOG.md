@@ -10,16 +10,18 @@ Future milestones and issues for the YellowMind platform: Tour de France stage w
 
 ## Milestone 2 — Historical Data Ingestion
 
-Support ingestion of riders, teams, stages, results, weather, and stage profiles from ProCyclingStats (PCS).
+Support ingestion of riders, teams, stages, results, weather, and stage profiles from the Wikipedia REST API, per [ADR-008](../adr/008-open-data-sources.md).
 
-### Issue M2-01: PCS client and rate-limited HTTP layer
+> **Source change:** ProCyclingStats moved behind Cloudflare bot protection and is no longer a viable primary source. Wikipedia is now primary; the `PCSClient` adapter is retained as opt-in, local-only. Consequence: stage results are available at **top-10 granularity**, not full peloton.
+
+### Issue M2-01: HTTP client and rate-limited transport — **done (#16)**
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Reliable, respectful access to ProCyclingStats. |
+| **Objective** | Reliable, respectful access to an external cycling data provider. |
 | **Description** | HTTP client with retries, exponential backoff, response caching, and configurable User-Agent. Abstract `CyclingDataSource` port in application layer. |
-| **Acceptance criteria** | Fetches a known stage page without error; rate limit configurable via env; unit tests with mocked HTTP responses. |
-| **Technical notes** | Respect PCS robots.txt and rate limits. Never commit scraped HTML to git. Cache to local Parquet bronze layer. |
+| **Acceptance criteria** | Fetches a known page without error; rate limit configurable via env; unit tests with mocked HTTP responses. |
+| **Technical notes** | Shipped as `PCSClient`. The `RateLimiter` and `FileResponseCache` are provider-agnostic and reused by the Wikipedia adapter, which also returns 429 on burst requests. Never commit fetched HTML to git. |
 | **Dependencies** | Milestone 1 complete |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
@@ -28,9 +30,9 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | Field | Detail |
 |-------|--------|
 | **Objective** | Populate riders and teams for a given Tour edition year. |
-| **Description** | Prefect task: fetch start list, normalize rider metadata (name, nationality, birth date, PCS slug), link riders to teams. |
-| **Acceptance criteria** | Ingests TDF 2023 start list; idempotent re-runs; data persisted to PostgreSQL and Parquet. |
-| **Technical notes** | Map PCS IDs to internal UUIDs. Handle mid-Tour transfers as edge case (document in ADR if deferred). |
+| **Description** | Parse the edition overview page for participating teams and their riders; normalize rider metadata (name, nationality, source slug), link riders to teams. |
+| **Acceptance criteria** | Ingests TDF 2023 team/rider list; idempotent re-runs; data persisted to PostgreSQL and Parquet. |
+| **Technical notes** | Map source page slugs to internal UUIDs. Handle mid-Tour transfers as edge case (document in ADR if deferred). |
 | **Dependencies** | M2-01 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
@@ -41,7 +43,7 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Objective** | Ingest all stages for a Tour edition with profile metadata. |
 | **Description** | Parse stage number, date, type (flat/hilly/mountain/TT), distance, elevation gain, finish type, profile score. |
 | **Acceptance criteria** | 21 stages ingested for TDF 2023; `StageProfile` entity populated; validation rejects invalid stage numbers. |
-| **Technical notes** | Profile score and climb categories from PCS where available. |
+| **Technical notes** | Stage type is derived from the edition overview table (flat/hilly/mountain/TT wording). Elevation gain and climb categories are not consistently available and may be null — record that in the feature catalog rather than inventing values. |
 | **Dependencies** | M2-01 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
@@ -49,9 +51,9 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Ingest per-stage results for all riders. |
-| **Description** | Rank, time, time gap, bonus seconds, DNF/DNS/DSQ status, points classifications where available. |
-| **Acceptance criteria** | Full results for TDF 2023 stage 1; handles large peloton (180+ riders); GC standing derivable after ingestion. |
+| **Objective** | Ingest per-stage results and GC standings. |
+| **Description** | Rank, time, time gap, and status for the top-10 finishers per stage, plus the GC standings table that follows each stage. |
+| **Acceptance criteria** | Results for TDF 2023 stage 1 and its GC table; parser tolerates missing/annotated cells; GC standing queryable per stage. |
 | **Technical notes** | Link results to `Rider`, `Stage`, `TourEdition`. Store raw + normalized in bronze/silver Parquet. |
 | **Dependencies** | M2-02, M2-03 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:L` |

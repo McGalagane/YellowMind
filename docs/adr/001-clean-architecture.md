@@ -14,7 +14,7 @@ Organize Python code into four layers under `src/yellowmind/`:
 
 1. **Domain** — entities, value objects, repository interfaces, pure domain services
 2. **Application** — use cases and DTOs orchestrating domain logic
-3. **Infrastructure** — database adapters, PCS client, ML wrappers, Prefect tasks
+3. **Infrastructure** — database adapters, ingestion clients, ML wrappers, Prefect tasks
 4. **Presentation** — FastAPI routers and CLI entry points
 
 Dependencies flow inward only. Domain has zero imports from outer layers.

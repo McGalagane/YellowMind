@@ -7,13 +7,13 @@ YellowMind follows **Clean Architecture** with a **domain-driven** core. Depende
 ```mermaid
 flowchart TB
     User[User / Portfolio Reviewer]
-    PCS[ProCyclingStats]
-    Weather[Weather Archive API]
+    Wiki[Wikipedia REST API]
+    Weather[Open-Meteo Archive API]
 
     YM[YellowMind Platform]
 
     User -->|predictions, simulations| YM
-    YM -->|historical results| PCS
+    YM -->|historical results| Wiki
     YM -->|stage weather| Weather
 ```
 
@@ -44,8 +44,8 @@ flowchart TB
     API --> PG
     API --> DDB
     API --> ML
-    PREF --> PCS[PCS Ingestion]
-    PCS --> DDB
+    PREF --> ING[Wikipedia Ingestion]
+    ING --> DDB
     PREF --> PG
     FEAT --> DDB
     RATE --> DDB
@@ -61,14 +61,14 @@ flowchart TB
 |-------|---------|----------------|
 | Domain | `domain/` | Entities, value objects, domain rules, repository interfaces |
 | Application | `application/` | Use cases orchestrating domain logic via ports |
-| Infrastructure | `infrastructure/` | PostgreSQL, DuckDB, PCS client, ML model adapters |
+| Infrastructure | `infrastructure/` | PostgreSQL, DuckDB, ingestion clients, ML model adapters |
 | Presentation | `presentation/` | FastAPI routes, CLI, request/response schemas |
 
 ## Data flow
 
 ```mermaid
 sequenceDiagram
-    participant PCS as PCS
+    participant WIKI as Wikipedia API
     participant P as Prefect
     participant BR as Bronze Parquet
     participant FE as Feature Engine
@@ -76,7 +76,7 @@ sequenceDiagram
     participant PG as PostgreSQL
     participant API as FastAPI
 
-    PCS->>P: Scrape results
+    WIKI->>P: Fetch results
     P->>BR: Raw normalized data
     BR->>FE: Historical features
     FE->>ML: Train/test matrices
