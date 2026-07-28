@@ -7,15 +7,26 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.9
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
+  # Ruff and pyright run from the project environment rather than a pinned
+  # pre-commit mirror, so poetry.lock is the single source of truth for their
+  # versions. A pinned mirror can drift from the version CI installs, which
+  # lets a lint error pass locally and then fail CI.
   - repo: local
     hooks:
+      - id: ruff
+        name: ruff
+        entry: poetry run ruff check --fix --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: ruff-format
+        name: ruff-format
+        entry: poetry run ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
       - id: pyright
         name: pyright
         entry: poetry run pyright
