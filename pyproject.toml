@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "yellowmind"
+version = "0.1.0"
+description = "AI platform for Tour de France stage and GC predictions"
+authors = ["McGalagane"]
+readme = "README.md"
+packages = [{ include = "yellowmind", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
