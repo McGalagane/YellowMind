@@ -66,6 +66,35 @@ def find_table_by_headers(soup: BeautifulSoup, required_headers: set[str]) -> Ta
     raise TableNotFoundError(msg)
 
 
+def find_infobox(soup: BeautifulSoup) -> Tag:
+    """Return the article's infobox table.
+
+    Infoboxes are laid out vertically, one label-value row at a time, so they
+    cannot be located by a header signature the way data tables are.
+
+    Raises:
+        TableNotFoundError: If the article has no infobox.
+    """
+    # A CSS class selector matches the `infobox` token wherever it sits among an
+    # element's classes, which is what the articles need: every edition between
+    # 2015 and 2024 renders `class="infobox vevent"`. The suppression covers an
+    # untyped `namespaces` parameter in the bs4 stubs, not this call.
+    infobox = soup.select_one("table.infobox")  # pyright: ignore[reportUnknownMemberType]
+    if infobox is None:
+        msg = "No infobox found in article"
+        raise TableNotFoundError(msg)
+    return infobox
+
+
+def infobox_value(infobox: Tag, label: str) -> str:
+    """Return the value paired with `label` in an infobox, or an empty string."""
+    for row in infobox.find_all("tr"):
+        cells = row_cells(row)
+        if len(cells) == 2 and element_text(cells[0]) == label:
+            return element_text(cells[1])
+    return ""
+
+
 def header_index(table: Tag, *names: str) -> int:
     """Return the column index of the first header matching any of `names`.
 

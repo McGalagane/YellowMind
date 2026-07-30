@@ -5,13 +5,21 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from yellowmind.domain.entities import RaceResult, Rider, RiderParticipation, Stage, Team
+from yellowmind.domain.entities import (
+    RaceResult,
+    Rider,
+    RiderParticipation,
+    Stage,
+    Team,
+    TourEdition,
+)
 from yellowmind.domain.repositories import (
     RaceResultRepository,
     RiderParticipationRepository,
     RiderRepository,
     StageRepository,
     TeamRepository,
+    TourEditionRepository,
 )
 from yellowmind.infrastructure.persistence.mappers import (
     participation_to_domain,
@@ -24,6 +32,8 @@ from yellowmind.infrastructure.persistence.mappers import (
     stage_to_model,
     team_to_domain,
     team_to_model,
+    tour_edition_to_domain,
+    tour_edition_to_model,
 )
 from yellowmind.infrastructure.persistence.models import (
     RaceResultModel,
@@ -31,7 +41,28 @@ from yellowmind.infrastructure.persistence.models import (
     RiderParticipationModel,
     StageModel,
     TeamModel,
+    TourEditionModel,
 )
+
+
+class SqlAlchemyTourEditionRepository(TourEditionRepository):
+    """PostgreSQL-backed Tour edition repository."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def get_by_id(self, edition_id: UUID) -> TourEdition | None:
+        model = self._session.get(TourEditionModel, edition_id)
+        return tour_edition_to_domain(model) if model else None
+
+    def get_by_year(self, year: int) -> TourEdition | None:
+        model = self._session.scalars(
+            select(TourEditionModel).where(TourEditionModel.year == year)
+        ).one_or_none()
+        return tour_edition_to_domain(model) if model else None
+
+    def save(self, edition: TourEdition) -> None:
+        self._session.merge(tour_edition_to_model(edition))
 
 
 class SqlAlchemyRiderRepository(RiderRepository):
