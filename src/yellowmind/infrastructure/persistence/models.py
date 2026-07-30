@@ -74,6 +74,7 @@ class RiderModel(Base):
 
     participations: Mapped[list[RiderParticipationModel]] = relationship(back_populates="rider")
     results: Mapped[list[RaceResultModel]] = relationship(back_populates="rider")
+    gc_standings: Mapped[list[GcStandingModel]] = relationship(back_populates="rider")
 
 
 class RiderParticipationModel(Base):
@@ -123,12 +124,14 @@ class StageModel(Base):
 
     tour_edition: Mapped[TourEditionModel] = relationship(back_populates="stages")
     results: Mapped[list[RaceResultModel]] = relationship(back_populates="stage")
+    gc_standings: Mapped[list[GcStandingModel]] = relationship(back_populates="stage")
 
 
 class RaceResultModel(Base):
-    """ORM model for race results."""
+    """ORM model for stage finishes."""
 
     __tablename__ = "race_results"
+    __table_args__ = (UniqueConstraint("stage_id", "rider_id", name="uq_race_results_stage_rider"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     stage_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("stages.id"), nullable=False)
@@ -140,6 +143,25 @@ class RaceResultModel(Base):
 
     stage: Mapped[StageModel] = relationship(back_populates="results")
     rider: Mapped[RiderModel] = relationship(back_populates="results")
+
+
+class GcStandingModel(Base):
+    """ORM model for general-classification standings after a stage."""
+
+    __tablename__ = "gc_standings"
+    __table_args__ = (
+        UniqueConstraint("stage_id", "rider_id", name="uq_gc_standings_stage_rider"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    stage_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("stages.id"), nullable=False)
+    rider_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("riders.id"), nullable=False)
+    rank: Mapped[int] = mapped_column(Integer, nullable=False)
+    time: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    time_gap_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    stage: Mapped[StageModel] = relationship(back_populates="gc_standings")
+    rider: Mapped[RiderModel] = relationship(back_populates="gc_standings")
 
 
 class StageProfileModel(Base):
