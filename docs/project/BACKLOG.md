@@ -58,13 +58,13 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Dependencies** | M2-02b |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
-### Issue M2-02d: Persist riders and teams
+### Issue M2-02d: Persist riders and teams — **done (#29)**
 
 | Field | Detail |
 |-------|--------|
 | **Objective** | Store parsed riders, teams, and participations in PostgreSQL. |
 | **Description** | Map startlist records onto the domain entities, assign internal UUIDs keyed on source slugs, and persist idempotently. |
-| **Acceptance criteria** | Ingests TDF 2023 riders, teams, and participations; re-running changes nothing. |
+| **Acceptance criteria** | Ingests riders, teams, and participations; re-running changes nothing. Verified across 2015-2024 against PostgreSQL: 10 editions, 221 teams, **642 riders, 1,834 participations**, with a second pass creating nothing. |
 | **Technical notes** | Deduplicate riders across editions on `rider_slug`, and teams on `(edition, team_slug)`, since sponsor changes rename teams between years. Handle mid-Tour transfers as an edge case (document in an ADR if deferred). The Parquet mirror is deliberately excluded: the analytical store applies to every ingestion type, so it is established once in its own issue rather than bolted onto each. |
 | **Dependencies** | M2-02c, since participations need an edition to attach to |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
