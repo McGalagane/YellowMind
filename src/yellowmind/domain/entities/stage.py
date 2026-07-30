@@ -16,6 +16,9 @@ class StageType(StrEnum):
     MOUNTAIN = "mountain"
     INDIVIDUAL_TT = "individual_tt"
     TEAM_TT = "team_tt"
+    #: Ridden alone like an individual time trial, but rewards climbers rather
+    #: than time-trial specialists, so the two are not interchangeable.
+    MOUNTAIN_TT = "mountain_tt"
 
 
 @dataclass(slots=True)
