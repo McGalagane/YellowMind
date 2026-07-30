@@ -95,8 +95,52 @@ def infobox_value(infobox: Tag, label: str) -> str:
     return ""
 
 
+def data_columns(table: Tag) -> list[str]:
+    """Return one header label per data column, honouring `colspan`.
+
+    A header that spans several columns is repeated across each one, so the
+    returned positions line up with the cells of a data row. Without this, a
+    spanning header shifts every later column by one and the shift is silent:
+    the route table's terrain header spans an icon cell and a label cell, so a
+    naive mapping reads the icon as the terrain and the terrain as the winner.
+    """
+    rows = table.find_all("tr")
+    if not rows:
+        msg = "Table has no rows"
+        raise TableNotFoundError(msg)
+
+    columns: list[str] = []
+    for cell in row_cells(rows[0]):
+        label = element_text(cell)
+        raw_span = cell.get("colspan")
+        try:
+            span = max(1, int(str(raw_span)))
+        except (TypeError, ValueError):
+            # A missing or non-numeric colspan means a single column.
+            span = 1
+        columns.extend([label] * span)
+    return columns
+
+
+def header_span(table: Tag, *names: str) -> tuple[int, int]:
+    """Return the first data column of a header and how many it covers.
+
+    Raises:
+        TableNotFoundError: If none of the names is present.
+    """
+    columns = data_columns(table)
+    for name in names:
+        if name in columns:
+            start = columns.index(name)
+            width = columns.count(name)
+            return start, width
+
+    msg = f"None of the headers {list(names)} found in {columns}"
+    raise TableNotFoundError(msg)
+
+
 def header_index(table: Tag, *names: str) -> int:
-    """Return the column index of the first header matching any of `names`.
+    """Return the data-column index of the first header matching any of `names`.
 
     Accepts several spellings because headers vary between editions, for
     instance ``Ref`` in 2015 and ``Ref.`` in later years.
@@ -104,18 +148,23 @@ def header_index(table: Tag, *names: str) -> int:
     Raises:
         TableNotFoundError: If none of the names is present.
     """
-    rows = table.find_all("tr")
-    if not rows:
-        msg = "Table has no rows"
-        raise TableNotFoundError(msg)
+    return header_span(table, *names)[0]
 
-    headers = row_texts(rows[0])
-    for name in names:
-        if name in headers:
-            return headers.index(name)
 
-    msg = f"None of the headers {list(names)} found in {headers}"
-    raise TableNotFoundError(msg)
+def span_text(cells: list[Tag], start: int, width: int) -> str:
+    """Return the first non-empty text across a header's columns.
+
+    Spanning headers pair a pictogram cell with a label cell, and their order is
+    not guaranteed, so the side carrying text is taken rather than a fixed one.
+    """
+    for offset in range(width):
+        index = start + offset
+        if index >= len(cells):
+            break
+        text = element_text(cells[index])
+        if text:
+            return text
+    return ""
 
 
 def wikilink_slug(cell: Tag | None) -> str:
