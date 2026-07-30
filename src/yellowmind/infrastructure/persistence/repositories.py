@@ -13,6 +13,7 @@ from yellowmind.domain.entities import (
     Stage,
     Team,
     TourEdition,
+    Weather,
 )
 from yellowmind.domain.repositories import (
     GcStandingRepository,
@@ -22,6 +23,7 @@ from yellowmind.domain.repositories import (
     StageRepository,
     TeamRepository,
     TourEditionRepository,
+    WeatherRepository,
 )
 from yellowmind.infrastructure.persistence.mappers import (
     gc_standing_to_domain,
@@ -38,6 +40,8 @@ from yellowmind.infrastructure.persistence.mappers import (
     team_to_model,
     tour_edition_to_domain,
     tour_edition_to_model,
+    weather_to_domain,
+    weather_to_model,
 )
 from yellowmind.infrastructure.persistence.models import (
     GcStandingModel,
@@ -47,6 +51,7 @@ from yellowmind.infrastructure.persistence.models import (
     StageModel,
     TeamModel,
     TourEditionModel,
+    WeatherModel,
 )
 
 
@@ -253,3 +258,23 @@ class SqlAlchemyGcStandingRepository(GcStandingRepository):
 
     def save(self, standing: GcStanding) -> None:
         self._session.merge(gc_standing_to_model(standing))
+
+
+class SqlAlchemyWeatherRepository(WeatherRepository):
+    """PostgreSQL-backed weather repository."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def get_by_id(self, weather_id: UUID) -> Weather | None:
+        model = self._session.get(WeatherModel, weather_id)
+        return weather_to_domain(model) if model else None
+
+    def get_by_stage(self, stage_id: UUID) -> Weather | None:
+        model = self._session.scalars(
+            select(WeatherModel).where(WeatherModel.stage_id == stage_id)
+        ).one_or_none()
+        return weather_to_domain(model) if model else None
+
+    def save(self, weather: Weather) -> None:
+        self._session.merge(weather_to_model(weather))

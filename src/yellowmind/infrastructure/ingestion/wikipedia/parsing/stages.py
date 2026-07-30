@@ -3,10 +3,11 @@
 import re
 from datetime import date
 from typing import Final
+from urllib.parse import unquote
 
 from bs4 import Tag
 
-from yellowmind.application.dto import StageRecord
+from yellowmind.application.dto import StageFinishRecord, StageRecord
 from yellowmind.domain.entities import StageType
 from yellowmind.infrastructure.ingestion.wikipedia.parsing.html import (
     element_text,
@@ -60,9 +61,70 @@ _MONTHS: Final[dict[str, int]] = {
     "december": 12,
 }
 
+# Country articles sometimes appear as wikilinks beside a finish. They are not
+# places a stage finishes, and filtering them keeps the last place link as the
+# town or climb. Monaco is both a sovereign state and a start town (2024 S21);
+# finish extraction still prefers the text after ` to `, so filtering it is safe.
+_COUNTRY_SLUGS: Final[frozenset[str]] = frozenset(
+    {
+        "Andorra",
+        "Austria",
+        "Belgium",
+        "Denmark",
+        "England",
+        "France",
+        "Germany",
+        "Italy",
+        "Luxembourg",
+        "Monaco",
+        "Netherlands",
+        "Portugal",
+        "Republic_of_Ireland",
+        "Scotland",
+        "Spain",
+        "Switzerland",
+        "United_Kingdom",
+        "Wales",
+    }
+)
+
+_COUNTRY_PAREN: Final[re.Pattern[str]] = re.compile(r"\s*\([^)]*\)\s*$")
+_TO_SPLIT: Final[re.Pattern[str]] = re.compile(r"\s+to\s+", re.IGNORECASE)
+
 
 class StageParseError(Exception):
     """Raised when a stage row cannot be read."""
+
+
+def parse_stage_finishes(html: str) -> list[StageFinishRecord]:
+    """Parse each stage's finish place from the overview Course column.
+
+    Weather is sampled at the finish: that is where outcomes are most
+    weather-sensitive, and the Course cell always names it (verified 2015-2024).
+
+    Raises:
+        StageParseError: If a stage row has no recoverable finish name.
+    """
+    table = find_table_by_headers(parse_html(html), _ROUTE_HEADERS)
+    number_column = header_index(table, "Stage")
+    course_column = header_index(table, "Course")
+
+    records: list[StageFinishRecord] = []
+    for row in table.find_all("tr")[1:]:
+        cells = row_cells(row)
+        number = _stage_number(cells, number_column)
+        if number is None:
+            continue
+        if course_column >= len(cells):
+            msg = f"Course cell missing for stage {number}"
+            raise StageParseError(msg)
+
+        name, slug = _finish_from_course(cells[course_column])
+        if not name:
+            msg = f"Cannot read finish place for stage {number}"
+            raise StageParseError(msg)
+        records.append(StageFinishRecord(stage_number=number, finish_name=name, finish_slug=slug))
+    return records
 
 
 def parse_stages(html: str, year: int) -> list[StageRecord]:
@@ -110,6 +172,59 @@ def _stage_number(cells: list[Tag], column: int) -> int | None:
     if column >= len(cells):
         return None
     return parse_optional_int(element_text(cells[column]))
+
+
+def _finish_from_course(cell: Tag) -> tuple[str, str]:
+    """Return ``(finish_name, finish_slug)`` from a Course cell.
+
+    Prefer the last place wikilink on the finish side of ``A to B``. When the
+    finish is plain text only (2024 stage 21: Monaco to Nice), fall back to the
+    text after ``to``.
+    """
+    text = element_text(cell)
+    places = _place_links(cell)
+
+    parts = _TO_SPLIT.split(text, maxsplit=1)
+    if len(parts) == 2:
+        finish_half = _COUNTRY_PAREN.sub("", parts[1]).strip()
+        in_finish = [
+            (name, slug) for name, slug in places if name == finish_half or name in parts[1]
+        ]
+        if in_finish:
+            return in_finish[-1]
+        return finish_half, ""
+
+    if places:
+        return places[-1]
+
+    return _COUNTRY_PAREN.sub("", text).strip(), ""
+
+
+def _place_links(cell: Tag) -> list[tuple[str, str]]:
+    """Return ``(anchor text, article slug)`` for place wikilinks in ``cell``."""
+    places: list[tuple[str, str]] = []
+    for anchor in cell.find_all("a", href=True):
+        if not isinstance(anchor, Tag):
+            continue
+        href = str(anchor.get("href", ""))
+        slug = _article_slug(href)
+        if not slug or slug in _COUNTRY_SLUGS or ":" in slug or "cite_note" in slug:
+            continue
+        name = element_text(anchor)
+        if name:
+            places.append((name, slug))
+    return places
+
+
+def _article_slug(href: str) -> str:
+    """Normalise a REST or classic Wikipedia href to an article slug."""
+    if href.startswith("./"):
+        href = href[2:]
+    elif href.startswith("/wiki/"):
+        href = href[len("/wiki/") :]
+    else:
+        return ""
+    return unquote(href.split("#", 1)[0])
 
 
 def _parse_stage_type(value: str, number: int) -> StageType:

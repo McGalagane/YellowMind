@@ -21,6 +21,7 @@ from yellowmind.infrastructure.ingestion.wikipedia.parsing.results import (
 )
 from yellowmind.infrastructure.ingestion.wikipedia.parsing.stages import (
     StageParseError,
+    parse_stage_finishes,
     parse_stages,
 )
 from yellowmind.infrastructure.ingestion.wikipedia.parsing.startlist import (
@@ -50,6 +51,7 @@ __all__ = [
     "parse_gap_seconds",
     "parse_html",
     "parse_stage_boards",
+    "parse_stage_finishes",
     "parse_stages",
     "parse_startlist",
     "parse_time_cell",

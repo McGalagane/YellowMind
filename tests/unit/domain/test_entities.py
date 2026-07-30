@@ -129,6 +129,9 @@ def test_weather_non_negative() -> None:
             temperature_c=25.0,
             wind_speed_kmh=-1.0,
             precipitation_mm=0.0,
+            location_name="Bilbao",
+            latitude=43.26,
+            longitude=-2.92,
         )
 
 

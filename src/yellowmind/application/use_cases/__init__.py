@@ -16,6 +16,10 @@ from yellowmind.application.use_cases.ingest_startlist import (
     StartlistIngestionSummary,
 )
 from yellowmind.application.use_cases.ingest_tour_edition import IngestTourEdition
+from yellowmind.application.use_cases.ingest_weather import (
+    IngestWeather,
+    WeatherIngestionSummary,
+)
 
 __all__ = [
     "DuplicateRiderError",
@@ -23,9 +27,11 @@ __all__ = [
     "IngestStages",
     "IngestStartlist",
     "IngestTourEdition",
+    "IngestWeather",
     "MissingStageError",
     "StageIngestionSummary",
     "StageResultsIngestionSummary",
     "StageScheduleError",
     "StartlistIngestionSummary",
+    "WeatherIngestionSummary",
 ]
