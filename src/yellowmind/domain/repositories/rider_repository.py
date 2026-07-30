@@ -14,8 +14,12 @@ class RiderRepository(ABC):
         """Return a rider by ID."""
 
     @abstractmethod
-    def list_by_team(self, team_id: UUID) -> list[Rider]:
-        """Return all riders on a team."""
+    def get_by_source_slug(self, source_slug: str) -> Rider | None:
+        """Return a rider by source identifier.
+
+        Ingestion uses this to recognise a rider already stored from an earlier
+        edition instead of creating a duplicate.
+        """
 
     @abstractmethod
     def save(self, rider: Rider) -> None:

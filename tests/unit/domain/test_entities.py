@@ -48,19 +48,41 @@ def test_tour_edition_invalid_dates() -> None:
 
 def test_team_requires_name() -> None:
     with pytest.raises(ValueError, match="Team name"):
-        Team(id=uuid4(), tour_edition_id=uuid4(), name="  ", nationality="FRA")
+        Team(id=uuid4(), tour_edition_id=uuid4(), name="  ", source_slug="groupama-fdj")
 
 
-def test_rider_requires_name_and_slug() -> None:
+def test_team_requires_source_slug() -> None:
+    with pytest.raises(ValueError, match="Team source slug"):
+        Team(id=uuid4(), tour_edition_id=uuid4(), name="Groupama-FDJ", source_slug=" ")
+
+
+def test_rider_requires_name() -> None:
     with pytest.raises(ValueError, match="Rider name"):
-        Rider(
-            id=uuid4(),
-            team_id=uuid4(),
-            name="",
-            birth_date=date(1995, 1, 1),
-            nationality="SLO",
-            pcs_slug="tadej-pogacar",
-        )
+        Rider(id=uuid4(), name="", nationality="Slovenia", source_slug="tadej-pogacar")
+
+
+def test_rider_requires_source_slug() -> None:
+    with pytest.raises(ValueError, match="Rider source slug"):
+        Rider(id=uuid4(), name="Tadej Pogacar", nationality="Slovenia", source_slug="")
+
+
+def test_rider_birth_date_is_optional() -> None:
+    """The data source publishes age per edition, never a birth date."""
+    rider = Rider(id=uuid4(), name="Tadej Pogacar", nationality="Slovenia", source_slug="pogacar")
+
+    assert rider.birth_date is None
+
+
+def test_rider_accepts_birth_date_when_known() -> None:
+    rider = Rider(
+        id=uuid4(),
+        name="Tadej Pogacar",
+        nationality="Slovenia",
+        source_slug="pogacar",
+        birth_date=date(1998, 9, 21),
+    )
+
+    assert rider.birth_date == date(1998, 9, 21)
 
 
 def test_stage_entity() -> None:
