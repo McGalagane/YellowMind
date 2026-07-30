@@ -10,6 +10,7 @@ from yellowmind.domain.entities import (
     Stage,
     StageType,
     Team,
+    TourEdition,
 )
 from yellowmind.domain.value_objects import (
     Abandonment,
@@ -23,7 +24,30 @@ from yellowmind.infrastructure.persistence.models import (
     RiderParticipationModel,
     StageModel,
     TeamModel,
+    TourEditionModel,
 )
+
+
+def tour_edition_to_domain(model: TourEditionModel) -> TourEdition:
+    """Convert a Tour edition ORM model to a domain entity."""
+    return TourEdition(
+        id=model.id,
+        year=model.year,
+        name=model.name,
+        start_date=model.start_date,
+        end_date=model.end_date,
+    )
+
+
+def tour_edition_to_model(edition: TourEdition) -> TourEditionModel:
+    """Convert a Tour edition domain entity to an ORM model."""
+    return TourEditionModel(
+        id=edition.id,
+        year=edition.year,
+        name=edition.name,
+        start_date=edition.start_date,
+        end_date=edition.end_date,
+    )
 
 
 def rider_to_domain(model: RiderModel) -> Rider:
