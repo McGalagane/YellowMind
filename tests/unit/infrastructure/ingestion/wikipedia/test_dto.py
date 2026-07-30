@@ -3,8 +3,8 @@
 import pytest
 
 from yellowmind.infrastructure.ingestion.wikipedia.dto import (
-    Abandonment,
     AbandonmentKind,
+    ParsedAbandonment,
     StartlistEntry,
 )
 
@@ -34,7 +34,7 @@ def test_finisher_reports_finished() -> None:
 def test_abandoning_rider_reports_not_finished() -> None:
     entry = make_entry(
         final_gc_position=None,
-        abandonment=Abandonment(
+        abandonment=ParsedAbandonment(
             kind=AbandonmentKind.DID_NOT_FINISH, stage_number=8, raw_code="DNF"
         ),
     )
@@ -46,7 +46,7 @@ def test_rider_cannot_both_place_and_abandon() -> None:
     with pytest.raises(ValueError, match="cannot both place and abandon"):
         make_entry(
             final_gc_position=3,
-            abandonment=Abandonment(
+            abandonment=ParsedAbandonment(
                 kind=AbandonmentKind.DID_NOT_FINISH, stage_number=8, raw_code="DNF"
             ),
         )
@@ -70,15 +70,17 @@ def test_gc_position_must_be_positive() -> None:
 
 def test_abandonment_stage_must_be_positive() -> None:
     with pytest.raises(ValueError, match="Stage number"):
-        Abandonment(kind=AbandonmentKind.DID_NOT_FINISH, stage_number=0, raw_code="DNF")
+        ParsedAbandonment(kind=AbandonmentKind.DID_NOT_FINISH, stage_number=0, raw_code="DNF")
 
 
 def test_abandonment_requires_a_raw_code() -> None:
     with pytest.raises(ValueError, match="raw_code"):
-        Abandonment(kind=AbandonmentKind.UNKNOWN, stage_number=None, raw_code="")
+        ParsedAbandonment(kind=AbandonmentKind.UNKNOWN, stage_number=None, raw_code="")
 
 
 def test_abandonment_allows_absent_stage() -> None:
-    abandonment = Abandonment(kind=AbandonmentKind.DISQUALIFIED, stage_number=None, raw_code="DSQ")
+    abandonment = ParsedAbandonment(
+        kind=AbandonmentKind.DISQUALIFIED, stage_number=None, raw_code="DSQ"
+    )
 
     assert abandonment.stage_number is None

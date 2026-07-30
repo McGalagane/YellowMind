@@ -3,8 +3,7 @@
 from yellowmind.infrastructure.ingestion.wikipedia.client import WikipediaClient
 from yellowmind.infrastructure.ingestion.wikipedia.config import WikipediaConfig
 from yellowmind.infrastructure.ingestion.wikipedia.dto import (
-    Abandonment,
-    AbandonmentKind,
+    ParsedAbandonment,
     StartlistEntry,
 )
 from yellowmind.infrastructure.ingestion.wikipedia.parsing import (
@@ -20,8 +19,7 @@ from yellowmind.infrastructure.ingestion.wikipedia.urls import (
 )
 
 __all__ = [
-    "Abandonment",
-    "AbandonmentKind",
+    "ParsedAbandonment",
     "StartlistEntry",
     "TableNotFoundError",
     "WikipediaClient",
