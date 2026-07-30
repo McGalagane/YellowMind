@@ -6,8 +6,18 @@ lookups by source identifier, and a save that replaces a row of the same ID.
 
 from uuid import UUID
 
-from yellowmind.domain.entities import Rider, RiderParticipation, Stage, Team, TourEdition
+from yellowmind.domain.entities import (
+    GcStanding,
+    RaceResult,
+    Rider,
+    RiderParticipation,
+    Stage,
+    Team,
+    TourEdition,
+)
 from yellowmind.domain.repositories import (
+    GcStandingRepository,
+    RaceResultRepository,
     RiderParticipationRepository,
     RiderRepository,
     StageRepository,
@@ -135,3 +145,49 @@ class InMemoryStageRepository(StageRepository):
 
     def save(self, stage: Stage) -> None:
         self.rows[stage.id] = stage
+
+
+class InMemoryRaceResultRepository(RaceResultRepository):
+    """Race results held in memory."""
+
+    def __init__(self) -> None:
+        self.rows: dict[UUID, RaceResult] = {}
+
+    def get_by_id(self, result_id: UUID) -> RaceResult | None:
+        return self.rows.get(result_id)
+
+    def get_by_stage_and_rider(self, stage_id: UUID, rider_id: UUID) -> RaceResult | None:
+        return next(
+            (r for r in self.rows.values() if r.stage_id == stage_id and r.rider_id == rider_id),
+            None,
+        )
+
+    def list_by_stage(self, stage_id: UUID) -> list[RaceResult]:
+        rows = [r for r in self.rows.values() if r.stage_id == stage_id]
+        return sorted(rows, key=lambda r: r.rank or 0)
+
+    def save(self, result: RaceResult) -> None:
+        self.rows[result.id] = result
+
+
+class InMemoryGcStandingRepository(GcStandingRepository):
+    """GC standings held in memory."""
+
+    def __init__(self) -> None:
+        self.rows: dict[UUID, GcStanding] = {}
+
+    def get_by_id(self, standing_id: UUID) -> GcStanding | None:
+        return self.rows.get(standing_id)
+
+    def get_by_stage_and_rider(self, stage_id: UUID, rider_id: UUID) -> GcStanding | None:
+        return next(
+            (s for s in self.rows.values() if s.stage_id == stage_id and s.rider_id == rider_id),
+            None,
+        )
+
+    def list_by_stage(self, stage_id: UUID) -> list[GcStanding]:
+        rows = [s for s in self.rows.values() if s.stage_id == stage_id]
+        return sorted(rows, key=lambda s: s.rank)
+
+    def save(self, standing: GcStanding) -> None:
+        self.rows[standing.id] = standing
