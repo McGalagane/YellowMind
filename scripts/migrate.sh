@@ -22,5 +22,13 @@ poetry run python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else
 
 export DATABASE_URL="${DATABASE_URL:-postgresql://yellowmind:yellowmind@localhost:5432/yellowmind}"
 
-echo "Running migrations against ${DATABASE_URL}"
-poetry run python -m alembic upgrade head
+# Forward arguments so the script can run any Alembic command, e.g.
+# `scripts/migrate.sh downgrade 001` or `scripts/migrate.sh current`.
+# Without this, every invocation would upgrade regardless of what was asked.
+ALEMBIC_ARGS=("$@")
+if [[ ${#ALEMBIC_ARGS[@]} -eq 0 ]]; then
+  ALEMBIC_ARGS=(upgrade head)
+fi
+
+echo "Running 'alembic ${ALEMBIC_ARGS[*]}' against ${DATABASE_URL}"
+poetry run python -m alembic "${ALEMBIC_ARGS[@]}"
