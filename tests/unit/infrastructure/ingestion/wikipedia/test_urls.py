@@ -7,6 +7,7 @@ from yellowmind.infrastructure.ingestion.wikipedia import (
     rest_html_path,
     stage_range_title,
     stage_range_titles,
+    startlist_title,
 )
 
 
@@ -17,6 +18,15 @@ def test_edition_title() -> None:
 def test_edition_title_rejects_year_before_first_tour() -> None:
     with pytest.raises(ValueError, match="1903"):
         edition_title(1902)
+
+
+def test_startlist_title() -> None:
+    assert startlist_title(2023) == "List_of_teams_and_cyclists_in_the_2023_Tour_de_France"
+
+
+def test_startlist_title_rejects_year_before_first_tour() -> None:
+    with pytest.raises(ValueError, match="1903"):
+        startlist_title(1899)
 
 
 def test_stage_range_title() -> None:

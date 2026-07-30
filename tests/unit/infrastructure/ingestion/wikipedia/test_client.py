@@ -70,6 +70,19 @@ def test_fetch_stage_pages_requests_both_articles(tmp_path: Path) -> None:
     ]
 
 
+def test_fetch_startlist_page_requests_expected_path(tmp_path: Path) -> None:
+    paths: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        paths.append(request.url.path)
+        return httpx.Response(200, text="<html>startlist</html>")
+
+    content = build_client(handler, tmp_path).fetch_startlist_page(2023)
+
+    assert content == "<html>startlist</html>"
+    assert paths == ["/api/rest_v1/page/html/List_of_teams_and_cyclists_in_the_2023_Tour_de_France"]
+
+
 def test_repeated_fetch_is_served_from_cache(tmp_path: Path) -> None:
     requests = 0
 
