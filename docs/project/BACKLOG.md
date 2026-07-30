@@ -69,16 +69,18 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Dependencies** | M2-02c, since participations need an edition to attach to |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
-### Issue M2-03: Stage and stage profile ingestion
+### Issue M2-03: Stage ingestion — **done (#31)**
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Ingest all stages for a Tour edition with profile metadata. |
-| **Description** | Parse stage number, date, type (flat/hilly/mountain/TT), distance, elevation gain, finish type, profile score. |
-| **Acceptance criteria** | 21 stages ingested for TDF 2023; `StageProfile` entity populated; validation rejects invalid stage numbers. |
-| **Technical notes** | The overview `Route and stages` table provides stage number, date, course, distance, elevation gain and type (e.g. "Flat stage", "Medium-mountain stage"). Individual climb categories are not available; leave null rather than inventing values, and record the gap in the feature catalog. |
-| **Dependencies** | M2-01 |
+| **Objective** | Ingest all 21 stages per edition: number, date, terrain type, distance. |
+| **Description** | Parse the overview `Route and stages` table. Verified across 2015-2024: exactly 210 stages, idempotent on a second pass. |
+| **Acceptance criteria** | 21 stages per edition for all ten; terrain mapped for every spelling; rest-day and total rows skipped; unique on `(edition, number)`. |
+| **Technical notes** | Two traps found by surveying all ten editions. The `Type` header carries `colspan=2` (a pictogram cell plus a label cell) in **every** edition, so a naive header-to-column mapping reads the icon as the terrain and the terrain as the winner, silently — hence `data_columns`, `header_span`, and `span_text`. 2018 renames the header to `Stage type`. Terrain has 10 spellings across 210 stages: `Hilly stage` and `Medium mountain stage` are the same category renamed over the decade, and `Mountain time trial` justified adding `MOUNTAIN_TT` to `StageType`, since it rewards climbers rather than time-trial specialists. |
+| **Dependencies** | M2-02c |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
+
+> **Correction:** the original description assumed the route table carried `elevation gain`, which came from looking only at 2023. It is present **only** in 2023 — 21 of 210 stages. `StageProfile` is therefore not ingested here: its `finish_type` and `profile_score` appear nowhere in the source (they are derived features), and `elevation_gain_m` is non-nullable but available for one edition in ten. It belongs to feature engineering in M3, and elevation needs its own source. Tracked separately rather than half-filled.
 
 ### Issue M2-04: Race results ingestion
 

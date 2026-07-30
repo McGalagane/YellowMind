@@ -108,6 +108,9 @@ class StageModel(Base):
     """ORM model for stages."""
 
     __tablename__ = "stages"
+    __table_args__ = (
+        UniqueConstraint("tour_edition_id", "number", name="uq_stages_edition_number"),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     tour_edition_id: Mapped[UUID] = mapped_column(

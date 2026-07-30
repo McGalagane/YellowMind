@@ -167,6 +167,15 @@ class SqlAlchemyStageRepository(StageRepository):
         model = self._session.get(StageModel, stage_id)
         return stage_to_domain(model) if model else None
 
+    def get_by_edition_and_number(self, tour_edition_id: UUID, number: int) -> Stage | None:
+        model = self._session.scalars(
+            select(StageModel).where(
+                StageModel.tour_edition_id == tour_edition_id,
+                StageModel.number == number,
+            )
+        ).one_or_none()
+        return stage_to_domain(model) if model else None
+
     def list_by_edition(self, tour_edition_id: UUID) -> list[Stage]:
         models = self._session.scalars(
             select(StageModel)
