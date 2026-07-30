@@ -149,9 +149,7 @@ class GcStandingModel(Base):
     """ORM model for general-classification standings after a stage."""
 
     __tablename__ = "gc_standings"
-    __table_args__ = (
-        UniqueConstraint("stage_id", "rider_id", name="uq_gc_standings_stage_rider"),
-    )
+    __table_args__ = (UniqueConstraint("stage_id", "rider_id", name="uq_gc_standings_stage_rider"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     stage_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("stages.id"), nullable=False)
