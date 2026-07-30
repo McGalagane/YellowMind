@@ -47,7 +47,18 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Dependencies** | M2-02a |
 | **Labels** | `milestone-2`, `area:data`, `complexity:L` |
 
-### Issue M2-02c: Persist riders and teams
+### Issue M2-02c: Tour edition ingestion — **done (#27)**
+
+| Field | Detail |
+|-------|--------|
+| **Objective** | Persist the `TourEdition` aggregate root so everything else has an anchor. |
+| **Description** | Teams, participations, and stages all carry a `tour_edition_id`, and the edition's dates are non-nullable, so nothing could be stored until this existed. No `TourEditionRepository` implementation existed either. Dates come from the overview article's infobox, which is independent of the `Route and stages` table, so this does not duplicate M2-03. |
+| **Acceptance criteria** | Parser verified against all editions 2015-2024; re-running the ingestion changes nothing; end-to-end test from HTML to a reloaded entity. |
+| **Technical notes** | The `Dates` row varies: `4–26 July 2015` omits the start month, 2020 uses an **em** dash with a footnote marker and crosses months, 2021 and 2024 cross months with an en dash. Month names are mapped explicitly, since `strptime("%B")` is locale-dependent. The year is taken from the article rather than the caller, so a misfetched page fails instead of being stored against the wrong edition. `EditionRecord` is a source-agnostic use-case input in the application layer, keeping HTML out of the use case. |
+| **Dependencies** | M2-02b |
+| **Labels** | `milestone-2`, `area:data`, `complexity:M` |
+
+### Issue M2-02d: Persist riders and teams
 
 | Field | Detail |
 |-------|--------|
@@ -55,7 +66,7 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Description** | Map startlist records onto the domain entities, assign internal UUIDs keyed on source slugs, and persist idempotently. |
 | **Acceptance criteria** | Ingests TDF 2023 riders, teams, and participations; re-running changes nothing. |
 | **Technical notes** | Deduplicate riders across editions on `rider_slug`, and teams on `(edition, team_slug)`, since sponsor changes rename teams between years. Handle mid-Tour transfers as an edge case (document in an ADR if deferred). The Parquet mirror is deliberately excluded: the analytical store applies to every ingestion type, so it is established once in its own issue rather than bolted onto each. |
-| **Dependencies** | M2-02b |
+| **Dependencies** | M2-02c, since participations need an edition to attach to |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
 ### Issue M2-03: Stage and stage profile ingestion

@@ -1,0 +1,53 @@
+<!--
+  Trimmed from the 2023 Tour de France overview article. Keeps the infobox
+  shape, including the leading image row and the trailing rows that follow
+  `Dates`, so the parser is exercised against neighbouring content rather than
+  an isolated row.
+-->
+<html>
+<body>
+<section>
+<table class="infobox vevent">
+  <tbody>
+    <tr>
+      <th colspan="2" class="infobox-above">2023 Tour de France</th>
+    </tr>
+    <tr>
+      <td colspan="2" class="infobox-image">
+        <span><img src="./route-map.png" /></span>
+      </td>
+    </tr>
+    <tr>
+      <th class="infobox-label">Race details</th>
+      <td class="infobox-data"></td>
+    </tr>
+    <tr>
+      <th class="infobox-label">Dates</th>
+      <td class="infobox-data">1&#8211;23 July 2023</td>
+    </tr>
+    <tr>
+      <th class="infobox-label">Stages</th>
+      <td class="infobox-data">21</td>
+    </tr>
+    <tr>
+      <th class="infobox-label">Distance</th>
+      <td class="infobox-data">3,406&#160;km (2,116&#160;mi)</td>
+    </tr>
+    <tr>
+      <th class="infobox-label">Winning time</th>
+      <td class="infobox-data">82h 05' 42"</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- A second table that must not be mistaken for the infobox. -->
+<table class="wikitable plainrowheaders">
+  <caption>Route and stages</caption>
+  <tbody>
+    <tr><th>Stage</th><th>Date</th><th>Course</th></tr>
+    <tr><td>1</td><td>1 July</td><td>Bilbao to Bilbao</td></tr>
+  </tbody>
+</table>
+</section>
+</body>
+</html>
