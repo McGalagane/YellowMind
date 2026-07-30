@@ -1,5 +1,6 @@
 """Abstract repository interfaces (ports)."""
 
+from yellowmind.domain.repositories.gc_standing_repository import GcStandingRepository
 from yellowmind.domain.repositories.prediction_repository import PredictionRepository
 from yellowmind.domain.repositories.race_result_repository import RaceResultRepository
 from yellowmind.domain.repositories.rider_participation_repository import (
@@ -11,6 +12,7 @@ from yellowmind.domain.repositories.team_repository import TeamRepository
 from yellowmind.domain.repositories.tour_edition_repository import TourEditionRepository
 
 __all__ = [
+    "GcStandingRepository",
     "PredictionRepository",
     "RaceResultRepository",
     "RiderParticipationRepository",

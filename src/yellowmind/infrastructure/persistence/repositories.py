@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from yellowmind.domain.entities import (
+    GcStanding,
     RaceResult,
     Rider,
     RiderParticipation,
@@ -14,6 +15,7 @@ from yellowmind.domain.entities import (
     TourEdition,
 )
 from yellowmind.domain.repositories import (
+    GcStandingRepository,
     RaceResultRepository,
     RiderParticipationRepository,
     RiderRepository,
@@ -22,6 +24,8 @@ from yellowmind.domain.repositories import (
     TourEditionRepository,
 )
 from yellowmind.infrastructure.persistence.mappers import (
+    gc_standing_to_domain,
+    gc_standing_to_model,
     participation_to_domain,
     participation_to_model,
     race_result_to_domain,
@@ -36,6 +40,7 @@ from yellowmind.infrastructure.persistence.mappers import (
     tour_edition_to_model,
 )
 from yellowmind.infrastructure.persistence.models import (
+    GcStandingModel,
     RaceResultModel,
     RiderModel,
     RiderParticipationModel,
@@ -198,6 +203,15 @@ class SqlAlchemyRaceResultRepository(RaceResultRepository):
         model = self._session.get(RaceResultModel, result_id)
         return race_result_to_domain(model) if model else None
 
+    def get_by_stage_and_rider(self, stage_id: UUID, rider_id: UUID) -> RaceResult | None:
+        model = self._session.scalars(
+            select(RaceResultModel).where(
+                RaceResultModel.stage_id == stage_id,
+                RaceResultModel.rider_id == rider_id,
+            )
+        ).one_or_none()
+        return race_result_to_domain(model) if model else None
+
     def list_by_stage(self, stage_id: UUID) -> list[RaceResult]:
         models = self._session.scalars(
             select(RaceResultModel)
@@ -208,3 +222,34 @@ class SqlAlchemyRaceResultRepository(RaceResultRepository):
 
     def save(self, result: RaceResult) -> None:
         self._session.merge(race_result_to_model(result))
+
+
+class SqlAlchemyGcStandingRepository(GcStandingRepository):
+    """PostgreSQL-backed GC standing repository."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def get_by_id(self, standing_id: UUID) -> GcStanding | None:
+        model = self._session.get(GcStandingModel, standing_id)
+        return gc_standing_to_domain(model) if model else None
+
+    def get_by_stage_and_rider(self, stage_id: UUID, rider_id: UUID) -> GcStanding | None:
+        model = self._session.scalars(
+            select(GcStandingModel).where(
+                GcStandingModel.stage_id == stage_id,
+                GcStandingModel.rider_id == rider_id,
+            )
+        ).one_or_none()
+        return gc_standing_to_domain(model) if model else None
+
+    def list_by_stage(self, stage_id: UUID) -> list[GcStanding]:
+        models = self._session.scalars(
+            select(GcStandingModel)
+            .where(GcStandingModel.stage_id == stage_id)
+            .order_by(GcStandingModel.rank)
+        ).all()
+        return [gc_standing_to_domain(model) for model in models]
+
+    def save(self, standing: GcStanding) -> None:
+        self._session.merge(gc_standing_to_model(standing))

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from yellowmind.domain.entities import (
+    GcStanding,
     RaceResult,
     ResultStatus,
     Rider,
@@ -19,6 +20,7 @@ from yellowmind.domain.value_objects import (
     StageNumber,
 )
 from yellowmind.infrastructure.persistence.models import (
+    GcStandingModel,
     RaceResultModel,
     RiderModel,
     RiderParticipationModel,
@@ -184,4 +186,28 @@ def race_result_to_model(result: RaceResult) -> RaceResultModel:
         time=result.time,
         time_gap_seconds=result.time_gap_seconds,
         status=result.status.value,
+    )
+
+
+def gc_standing_to_domain(model: GcStandingModel) -> GcStanding:
+    """Convert a GC standing ORM model to a domain entity."""
+    return GcStanding(
+        id=model.id,
+        stage_id=model.stage_id,
+        rider_id=model.rider_id,
+        rank=model.rank,
+        time=model.time,
+        time_gap_seconds=model.time_gap_seconds,
+    )
+
+
+def gc_standing_to_model(standing: GcStanding) -> GcStandingModel:
+    """Convert a GC standing domain entity to an ORM model."""
+    return GcStandingModel(
+        id=standing.id,
+        stage_id=standing.stage_id,
+        rider_id=standing.rider_id,
+        rank=standing.rank,
+        time=standing.time,
+        time_gap_seconds=standing.time_gap_seconds,
     )

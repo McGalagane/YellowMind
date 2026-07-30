@@ -1,5 +1,6 @@
 """Domain entities."""
 
+from yellowmind.domain.entities.gc_standing import GcStanding
 from yellowmind.domain.entities.prediction import Prediction
 from yellowmind.domain.entities.race_result import RaceResult, ResultStatus
 from yellowmind.domain.entities.rider import Rider
@@ -15,6 +16,7 @@ from yellowmind.domain.entities.weather import Weather
 
 __all__ = [
     "FinishType",
+    "GcStanding",
     "Prediction",
     "RaceResult",
     "ResultStatus",

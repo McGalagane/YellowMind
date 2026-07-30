@@ -82,15 +82,15 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 
 > **Correction:** the original description assumed the route table carried `elevation gain`, which came from looking only at 2023. It is present **only** in 2023 — 21 of 210 stages. `StageProfile` is therefore not ingested here: its `finish_type` and `profile_score` appear nowhere in the source (they are derived features), and `elevation_gain_m` is non-nullable but available for one edition in ten. It belongs to feature engineering in M3, and elevation needs its own source. Tracked separately rather than half-filled.
 
-### Issue M2-04: Race results ingestion
+### Issue M2-04: Race results ingestion — **done (#34)**
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Ingest per-stage results and GC standings. |
-| **Description** | Rank, time, time gap, and status for the top-10 finishers per stage, plus the GC standings table that follows each stage. |
-| **Acceptance criteria** | Results for TDF 2023 stage 1 and its GC table; parser tolerates missing/annotated cells; GC standing queryable per stage. |
-| **Technical notes** | Link results to `Rider`, `Stage`, `TourEdition`. Store raw + normalized in bronze/silver Parquet. |
-| **Dependencies** | M2-02, M2-03 |
+| **Objective** | Ingest top-10 stage results and top-10 GC standings after each stage. |
+| **Description** | Parse stage-range articles into `RaceResult` and the new `GcStanding` entity. Verified across 2015-2024 against PostgreSQL: **2,070 stage results and 2,070 GC standings**, idempotent on a second pass, zero unresolved riders after identity folding. |
+| **Acceptance criteria** | Leaf-table selection; caption and heading fallbacks; time/`s.t.` parsing; TTT stage results skipped; cancelled stages reported; re-running changes nothing. |
+| **Technical notes** | Nested wrapper tables must be skipped. Captions appear from 2017; 2015-2016 use `Stage N` headings. Wikipedia slug drift (accents, Tom/Thomas Pidcock, Jhoan Esteban Chaves) is resolved within the edition's startlist via folded slug/name/family-name matching. Rank uniqueness was deliberately not enforced in the DB: it broke re-ingest when riders swapped places mid-transaction. |
+| **Dependencies** | M2-02d, M2-03 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:L` |
 
 ### Issue M2-05: Weather data ingestion

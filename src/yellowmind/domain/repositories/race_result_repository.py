@@ -14,8 +14,12 @@ class RaceResultRepository(ABC):
         """Return a result by ID."""
 
     @abstractmethod
+    def get_by_stage_and_rider(self, stage_id: UUID, rider_id: UUID) -> RaceResult | None:
+        """Return one rider's result on a stage, if stored."""
+
+    @abstractmethod
     def list_by_stage(self, stage_id: UUID) -> list[RaceResult]:
-        """Return all results for a stage."""
+        """Return all results for a stage, ordered by rank."""
 
     @abstractmethod
     def save(self, result: RaceResult) -> None:
