@@ -1,30 +1,11 @@
 """Unit tests for the Tour edition ingestion use case."""
 
 from datetime import date
-from uuid import UUID
+
+from tests.unit.application.doubles import InMemoryTourEditionRepository
 
 from yellowmind.application.dto import EditionRecord
 from yellowmind.application.use_cases import IngestTourEdition
-from yellowmind.domain.entities import TourEdition
-from yellowmind.domain.repositories import TourEditionRepository
-
-
-class InMemoryTourEditionRepository(TourEditionRepository):
-    """Repository double recording every save, to assert on write behaviour."""
-
-    def __init__(self) -> None:
-        self.saved: list[TourEdition] = []
-        self._by_year: dict[int, TourEdition] = {}
-
-    def get_by_id(self, edition_id: UUID) -> TourEdition | None:
-        return next((e for e in self._by_year.values() if e.id == edition_id), None)
-
-    def get_by_year(self, year: int) -> TourEdition | None:
-        return self._by_year.get(year)
-
-    def save(self, edition: TourEdition) -> None:
-        self.saved.append(edition)
-        self._by_year[edition.year] = edition
 
 
 def _record(year: int = 2023) -> EditionRecord:
