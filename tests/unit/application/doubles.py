@@ -6,10 +6,11 @@ lookups by source identifier, and a save that replaces a row of the same ID.
 
 from uuid import UUID
 
-from yellowmind.domain.entities import Rider, RiderParticipation, Team, TourEdition
+from yellowmind.domain.entities import Rider, RiderParticipation, Stage, Team, TourEdition
 from yellowmind.domain.repositories import (
     RiderParticipationRepository,
     RiderRepository,
+    StageRepository,
     TeamRepository,
     TourEditionRepository,
 )
@@ -107,3 +108,30 @@ class InMemoryRiderParticipationRepository(RiderParticipationRepository):
 
     def save(self, participation: RiderParticipation) -> None:
         self.rows[participation.id] = participation
+
+
+class InMemoryStageRepository(StageRepository):
+    """Stages held in memory, keyed by ID."""
+
+    def __init__(self) -> None:
+        self.rows: dict[UUID, Stage] = {}
+
+    def get_by_id(self, stage_id: UUID) -> Stage | None:
+        return self.rows.get(stage_id)
+
+    def get_by_edition_and_number(self, tour_edition_id: UUID, number: int) -> Stage | None:
+        return next(
+            (
+                s
+                for s in self.rows.values()
+                if s.tour_edition_id == tour_edition_id and s.number.value == number
+            ),
+            None,
+        )
+
+    def list_by_edition(self, tour_edition_id: UUID) -> list[Stage]:
+        rows = [s for s in self.rows.values() if s.tour_edition_id == tour_edition_id]
+        return sorted(rows, key=lambda s: s.number.value)
+
+    def save(self, stage: Stage) -> None:
+        self.rows[stage.id] = stage

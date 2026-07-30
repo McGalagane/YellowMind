@@ -6,11 +6,15 @@ from bs4 import Tag
 from yellowmind.infrastructure.ingestion.wikipedia.parsing.html import (
     TableNotFoundError,
     clean_text,
+    data_columns,
     find_table_by_headers,
     header_index,
+    header_span,
     parse_html,
     parse_optional_int,
+    row_cells,
     row_texts,
+    span_text,
     wikilink_slug,
 )
 
@@ -113,3 +117,57 @@ def test_wikilink_slug_handles_missing_cell() -> None:
 )
 def test_parse_optional_int(value: str, expected: int | None) -> None:
     assert parse_optional_int(value) == expected
+
+
+SPANNING_HEADER = """
+<table><tbody>
+  <tr><th>Stage</th><th>Date</th><th colspan="2">Type</th><th>Winner</th></tr>
+  <tr><td>1</td><td>1 July</td><td><img src="./icon.png" /></td><td>Flat stage</td>
+      <td>Someone</td></tr>
+</tbody></table>
+"""
+
+
+def _spanning_table() -> Tag:
+    table = parse_html(SPANNING_HEADER).find("table")
+    assert isinstance(table, Tag)
+    return table
+
+
+def test_data_columns_repeats_a_spanning_header() -> None:
+    """One label per data column, so positions line up with a data row's cells."""
+    assert data_columns(_spanning_table()) == [
+        "Stage",
+        "Date",
+        "Type",
+        "Type",
+        "Winner",
+    ]
+
+
+def test_columns_after_a_span_are_not_shifted() -> None:
+    """The bug this guards against is silent: `Winner` would otherwise read `Type`."""
+    assert header_index(_spanning_table(), "Winner") == 4
+
+
+def test_header_span_reports_width() -> None:
+    assert header_span(_spanning_table(), "Type") == (2, 2)
+    assert header_span(_spanning_table(), "Stage") == (0, 1)
+
+
+def test_header_span_accepts_alternative_spellings() -> None:
+    assert header_span(_spanning_table(), "Stage type", "Type") == (2, 2)
+
+
+def test_span_text_skips_an_empty_pictogram_cell() -> None:
+    rows = _spanning_table().find_all("tr")
+    cells = row_cells(rows[1])
+
+    assert span_text(cells, 2, 2) == "Flat stage"
+
+
+def test_span_text_is_empty_when_the_span_holds_nothing() -> None:
+    rows = _spanning_table().find_all("tr")
+    cells = row_cells(rows[1])
+
+    assert span_text(cells, 99, 2) == ""
