@@ -25,15 +25,26 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Dependencies** | Milestone 1 complete |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
-### Issue M2-02: Rider and team ingestion pipeline
+### Issue M2-02a: Startlist parser — riders and teams
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Populate riders and teams for a given Tour edition year. |
-| **Description** | Parse the edition overview page for participating teams and their riders; normalize rider metadata (name, nationality, source slug), link riders to teams. |
-| **Acceptance criteria** | Ingests TDF 2023 team/rider list; idempotent re-runs; data persisted to PostgreSQL and Parquet. |
-| **Technical notes** | Map source page slugs to internal UUIDs. Handle mid-Tour transfers as edge case (document in ADR if deferred). |
+| **Objective** | Turn the startlist article into structured rider and team records. |
+| **Description** | Parse the article `List of teams and cyclists in the {year} Tour de France`, which holds the complete field in one flat table: bib number, rider name and slug, nationality, team name and slug, age, final GC position, and abandonment. |
+| **Acceptance criteria** | All editions 2015-2024 parse with rider counts matching the source; finishers plus abandonments equal the field size; tables located by header signature rather than document position. |
+| **Technical notes** | **Corrected:** riders are *not* on the edition overview page — its teams section lists only the 22 team names. Team wikilinks resolve to the article's current title while the cell text is the historical name, so both are retained: the slug is the stable cross-edition key, the text is what the team was called that year. `Pos.` encodes abandonment as `DNF-14`, `DNS-18`, `HD`, `OTL`, `COV`, or `DSQ`, optionally suffixed with the stage. |
 | **Dependencies** | M2-01 |
+| **Labels** | `milestone-2`, `area:data`, `complexity:M` |
+
+### Issue M2-02b: Persist riders and teams
+
+| Field | Detail |
+|-------|--------|
+| **Objective** | Store parsed riders and teams in PostgreSQL and Parquet. |
+| **Description** | Map startlist records onto the `Rider` and `Team` domain entities, assign internal UUIDs keyed on source slugs, and persist idempotently. |
+| **Acceptance criteria** | Ingests TDF 2023 riders and teams; re-running changes nothing; data present in PostgreSQL and Parquet. |
+| **Technical notes** | Deduplicate riders across editions on `rider_slug`, and teams on `team_slug`, since sponsor changes rename teams between years. Handle mid-Tour transfers as an edge case (document in an ADR if deferred). |
+| **Dependencies** | M2-02a |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
 ### Issue M2-03: Stage and stage profile ingestion

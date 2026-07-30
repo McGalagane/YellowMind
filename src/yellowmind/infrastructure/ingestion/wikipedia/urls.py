@@ -1,8 +1,10 @@
 """URL and page-title helpers for Tour de France Wikipedia articles.
 
-Each edition spreads its data across three articles: an overview carrying the
-route table and final classifications, and two stage-range articles carrying
-per-stage results and the general classification after each stage.
+Each edition spreads its data across four articles: an overview carrying the
+route table and final classifications, two stage-range articles carrying
+per-stage results and the general classification after each stage, and a
+startlist article carrying the full field. The overview's own teams section
+lists only team names, so rosters must come from the startlist article.
 """
 
 from urllib.parse import quote
@@ -21,6 +23,12 @@ def edition_title(year: int) -> str:
     """Return the article title for an edition overview, e.g. ``2023_Tour_de_France``."""
     _validate_year(year)
     return f"{year}_Tour_de_France"
+
+
+def startlist_title(year: int) -> str:
+    """Return the article title listing every team and rider for an edition."""
+    _validate_year(year)
+    return f"List_of_teams_and_cyclists_in_the_{year}_Tour_de_France"
 
 
 def stage_range_title(year: int, first_stage: int, last_stage: int) -> str:

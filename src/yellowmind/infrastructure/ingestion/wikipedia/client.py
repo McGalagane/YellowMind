@@ -18,6 +18,7 @@ from yellowmind.infrastructure.ingestion.wikipedia.urls import (
     edition_title,
     rest_html_path,
     stage_range_titles,
+    startlist_title,
 )
 
 
@@ -57,6 +58,10 @@ class WikipediaClient(CyclingDataSource):
     def fetch_edition_page(self, year: int) -> str:
         """Fetch the overview article for a Tour de France edition."""
         return self.fetch_article(edition_title(year))
+
+    def fetch_startlist_page(self, year: int) -> str:
+        """Fetch the article listing every team and rider for an edition."""
+        return self.fetch_article(startlist_title(year))
 
     def fetch_stage_pages(self, year: int) -> tuple[str, str]:
         """Fetch both stage-range articles for an edition."""
