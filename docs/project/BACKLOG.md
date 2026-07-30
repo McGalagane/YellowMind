@@ -36,15 +36,26 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Dependencies** | M2-01 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
-### Issue M2-02b: Persist riders and teams
+### Issue M2-02b: Rider identity and participation model — **done (#25)**
 
 | Field | Detail |
 |-------|--------|
-| **Objective** | Store parsed riders and teams in PostgreSQL and Parquet. |
-| **Description** | Map startlist records onto the `Rider` and `Team` domain entities, assign internal UUIDs keyed on source slugs, and persist idempotently. |
-| **Acceptance criteria** | Ingests TDF 2023 riders and teams; re-running changes nothing; data present in PostgreSQL and Parquet. |
-| **Technical notes** | Deduplicate riders across editions on `rider_slug`, and teams on `team_slug`, since sponsor changes rename teams between years. Handle mid-Tour transfers as an edge case (document in an ADR if deferred). |
+| **Objective** | Align the entity model with the data the source actually provides. |
+| **Description** | The M1 entities assumed PCS fields. `Rider` was bound to a team, and teams to an edition, so rider identity could not survive across editions; `birth_date` and team nationality were required but are never published. Splits `Rider` (identity) from the new `RiderParticipation` (per-edition team, bib, age, GC position, abandonment). |
+| **Acceptance criteria** | Rider identity is edition-independent; abandonment has a home; migration verified up and down against PostgreSQL. |
+| **Technical notes** | See [ADR-009](../adr/009-rider-identity-and-participation.md). `AbandonmentKind` moved into the domain; the source-token mapping stays in the adapter. Nationality stores the source's country name, so columns widened from `String(3)`. |
 | **Dependencies** | M2-02a |
+| **Labels** | `milestone-2`, `area:data`, `complexity:L` |
+
+### Issue M2-02c: Persist riders and teams
+
+| Field | Detail |
+|-------|--------|
+| **Objective** | Store parsed riders, teams, and participations in PostgreSQL. |
+| **Description** | Map startlist records onto the domain entities, assign internal UUIDs keyed on source slugs, and persist idempotently. |
+| **Acceptance criteria** | Ingests TDF 2023 riders, teams, and participations; re-running changes nothing. |
+| **Technical notes** | Deduplicate riders across editions on `rider_slug`, and teams on `(edition, team_slug)`, since sponsor changes rename teams between years. Handle mid-Tour transfers as an edge case (document in an ADR if deferred). The Parquet mirror is deliberately excluded: the analytical store applies to every ingestion type, so it is established once in its own issue rather than bolted onto each. |
+| **Dependencies** | M2-02b |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
 ### Issue M2-03: Stage and stage profile ingestion

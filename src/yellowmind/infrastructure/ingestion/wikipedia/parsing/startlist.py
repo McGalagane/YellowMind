@@ -13,8 +13,8 @@ from bs4 import BeautifulSoup, Tag
 
 from yellowmind.infrastructure.ingestion.wikipedia.dto import (
     ABANDONMENT_CODES,
-    Abandonment,
     AbandonmentKind,
+    ParsedAbandonment,
     StartlistEntry,
 )
 from yellowmind.infrastructure.ingestion.wikipedia.parsing.html import (
@@ -119,7 +119,7 @@ def _parse_row(row: Tag, columns: _StartlistColumns) -> StartlistEntry | None:
     )
 
 
-def parse_abandonment(value: str) -> Abandonment | None:
+def parse_abandonment(value: str) -> ParsedAbandonment | None:
     """Parse a `Pos.` marker into an abandonment, or None if it is not one."""
     text = clean_text(value)
     if not text:
@@ -131,7 +131,7 @@ def parse_abandonment(value: str) -> Abandonment | None:
 
     code = match.group("code").upper()
     stage = match.group("stage")
-    return Abandonment(
+    return ParsedAbandonment(
         kind=ABANDONMENT_CODES.get(code, AbandonmentKind.UNKNOWN),
         stage_number=int(stage) if stage is not None else None,
         raw_code=code,

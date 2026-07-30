@@ -2,20 +2,38 @@
 
 from __future__ import annotations
 
-from yellowmind.domain.entities import RaceResult, ResultStatus, Rider, Stage, StageType
-from yellowmind.domain.value_objects import Distance, StageNumber
-from yellowmind.infrastructure.persistence.models import RaceResultModel, RiderModel, StageModel
+from yellowmind.domain.entities import (
+    RaceResult,
+    ResultStatus,
+    Rider,
+    RiderParticipation,
+    Stage,
+    StageType,
+    Team,
+)
+from yellowmind.domain.value_objects import (
+    Abandonment,
+    AbandonmentKind,
+    Distance,
+    StageNumber,
+)
+from yellowmind.infrastructure.persistence.models import (
+    RaceResultModel,
+    RiderModel,
+    RiderParticipationModel,
+    StageModel,
+    TeamModel,
+)
 
 
 def rider_to_domain(model: RiderModel) -> Rider:
     """Convert a rider ORM model to a domain entity."""
     return Rider(
         id=model.id,
-        team_id=model.team_id,
         name=model.name,
-        birth_date=model.birth_date,
         nationality=model.nationality,
-        pcs_slug=model.pcs_slug,
+        source_slug=model.source_slug,
+        birth_date=model.birth_date,
     )
 
 
@@ -23,11 +41,75 @@ def rider_to_model(rider: Rider) -> RiderModel:
     """Convert a rider domain entity to an ORM model."""
     return RiderModel(
         id=rider.id,
-        team_id=rider.team_id,
         name=rider.name,
-        birth_date=rider.birth_date,
         nationality=rider.nationality,
-        pcs_slug=rider.pcs_slug,
+        source_slug=rider.source_slug,
+        birth_date=rider.birth_date,
+    )
+
+
+def team_to_domain(model: TeamModel) -> Team:
+    """Convert a team ORM model to a domain entity."""
+    return Team(
+        id=model.id,
+        tour_edition_id=model.tour_edition_id,
+        name=model.name,
+        source_slug=model.source_slug,
+        nationality=model.nationality,
+    )
+
+
+def team_to_model(team: Team) -> TeamModel:
+    """Convert a team domain entity to an ORM model."""
+    return TeamModel(
+        id=team.id,
+        tour_edition_id=team.tour_edition_id,
+        name=team.name,
+        source_slug=team.source_slug,
+        nationality=team.nationality,
+    )
+
+
+def participation_to_domain(model: RiderParticipationModel) -> RiderParticipation:
+    """Convert a participation ORM model to a domain entity."""
+    return RiderParticipation(
+        id=model.id,
+        tour_edition_id=model.tour_edition_id,
+        rider_id=model.rider_id,
+        team_id=model.team_id,
+        bib_number=model.bib_number,
+        age=model.age,
+        final_gc_position=model.final_gc_position,
+        abandonment=_abandonment_to_domain(model.abandonment_kind, model.abandonment_stage),
+        is_young_rider=model.is_young_rider,
+    )
+
+
+def participation_to_model(participation: RiderParticipation) -> RiderParticipationModel:
+    """Convert a participation domain entity to an ORM model."""
+    abandonment = participation.abandonment
+    stage = abandonment.stage_number if abandonment is not None else None
+    return RiderParticipationModel(
+        id=participation.id,
+        tour_edition_id=participation.tour_edition_id,
+        rider_id=participation.rider_id,
+        team_id=participation.team_id,
+        bib_number=participation.bib_number,
+        age=participation.age,
+        final_gc_position=participation.final_gc_position,
+        abandonment_kind=abandonment.kind.value if abandonment is not None else None,
+        abandonment_stage=stage.value if stage is not None else None,
+        is_young_rider=participation.is_young_rider,
+    )
+
+
+def _abandonment_to_domain(kind: str | None, stage: int | None) -> Abandonment | None:
+    """Rebuild an abandonment from its two stored columns."""
+    if kind is None:
+        return None
+    return Abandonment(
+        kind=AbandonmentKind(kind),
+        stage_number=StageNumber(stage) if stage is not None else None,
     )
 
 

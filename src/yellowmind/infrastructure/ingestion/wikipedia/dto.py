@@ -6,27 +6,14 @@ identity concerns.
 """
 
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Final
 
+from yellowmind.domain.value_objects import AbandonmentKind
 
-class AbandonmentKind(StrEnum):
-    """Reason a rider left the race before the finish.
-
-    Values were derived from every edition between 2015 and 2024 rather than
-    assumed. ``UNKNOWN`` exists so an unseen marker degrades into a visible
-    record instead of failing the whole parse.
-    """
-
-    DID_NOT_FINISH = "did_not_finish"
-    DID_NOT_START = "did_not_start"
-    OUTSIDE_TIME_LIMIT = "outside_time_limit"
-    COVID_WITHDRAWAL = "covid_withdrawal"
-    DISQUALIFIED = "disqualified"
-    UNKNOWN = "unknown"
-
-
-# Source tokens observed in the `Pos.` column, mapped to semantic kinds.
+# Source tokens observed in the `Pos.` column, mapped to semantic kinds. The
+# tokens were derived from every edition between 2015 and 2024 rather than
+# assumed; an unlisted token becomes `UNKNOWN` so it degrades into a visible
+# record instead of failing the whole parse.
 # `HD` (hors delai) and `OTL` both mean the rider finished outside the time
 # limit; they are the French and English notations for the same outcome.
 ABANDONMENT_CODES: Final[dict[str, AbandonmentKind]] = {
@@ -40,8 +27,12 @@ ABANDONMENT_CODES: Final[dict[str, AbandonmentKind]] = {
 
 
 @dataclass(frozen=True, slots=True)
-class Abandonment:
-    """Why and when a rider left the race."""
+class ParsedAbandonment:
+    """Why and when a rider left the race, as printed by the source.
+
+    Distinct from the domain's `Abandonment` because it keeps the raw token and
+    an unvalidated stage number; narrowing happens when mapping to the domain.
+    """
 
     kind: AbandonmentKind
     #: Stage the marker refers to: the stage abandoned during for ``DNF``, or
@@ -80,7 +71,7 @@ class StartlistEntry:
     #: Final general classification position, or ``None`` if the rider did not
     #: reach Paris.
     final_gc_position: int | None
-    abandonment: Abandonment | None
+    abandonment: ParsedAbandonment | None
     #: Eligible for the young rider classification, marked with a dagger.
     is_young_rider: bool
 

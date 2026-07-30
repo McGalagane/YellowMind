@@ -3,6 +3,7 @@
 from yellowmind.domain.entities.prediction import Prediction
 from yellowmind.domain.entities.race_result import RaceResult, ResultStatus
 from yellowmind.domain.entities.rider import Rider
+from yellowmind.domain.entities.rider_participation import RiderParticipation
 from yellowmind.domain.entities.rider_rating import RiderRating
 from yellowmind.domain.entities.simulation import Simulation
 from yellowmind.domain.entities.stage import Stage, StageType
@@ -18,6 +19,7 @@ __all__ = [
     "RaceResult",
     "ResultStatus",
     "Rider",
+    "RiderParticipation",
     "RiderRating",
     "Simulation",
     "Stage",
