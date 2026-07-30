@@ -6,5 +6,6 @@ has to know which provider the data came from, nor how it was encoded.
 """
 
 from yellowmind.application.dto.edition_record import EditionRecord
+from yellowmind.application.dto.startlist_record import StartlistRecord
 
-__all__ = ["EditionRecord"]
+__all__ = ["EditionRecord", "StartlistRecord"]
