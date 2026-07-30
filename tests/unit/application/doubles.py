@@ -14,6 +14,7 @@ from yellowmind.domain.entities import (
     Stage,
     Team,
     TourEdition,
+    Weather,
 )
 from yellowmind.domain.repositories import (
     GcStandingRepository,
@@ -23,6 +24,7 @@ from yellowmind.domain.repositories import (
     StageRepository,
     TeamRepository,
     TourEditionRepository,
+    WeatherRepository,
 )
 
 
@@ -191,3 +193,19 @@ class InMemoryGcStandingRepository(GcStandingRepository):
 
     def save(self, standing: GcStanding) -> None:
         self.rows[standing.id] = standing
+
+
+class InMemoryWeatherRepository(WeatherRepository):
+    """Weather observations held in memory."""
+
+    def __init__(self) -> None:
+        self.rows: dict[UUID, Weather] = {}
+
+    def get_by_id(self, weather_id: UUID) -> Weather | None:
+        return self.rows.get(weather_id)
+
+    def get_by_stage(self, stage_id: UUID) -> Weather | None:
+        return next((w for w in self.rows.values() if w.stage_id == stage_id), None)
+
+    def save(self, weather: Weather) -> None:
+        self.rows[weather.id] = weather

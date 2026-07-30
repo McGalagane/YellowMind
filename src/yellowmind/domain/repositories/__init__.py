@@ -10,6 +10,7 @@ from yellowmind.domain.repositories.rider_repository import RiderRepository
 from yellowmind.domain.repositories.stage_repository import StageRepository
 from yellowmind.domain.repositories.team_repository import TeamRepository
 from yellowmind.domain.repositories.tour_edition_repository import TourEditionRepository
+from yellowmind.domain.repositories.weather_repository import WeatherRepository
 
 __all__ = [
     "GcStandingRepository",
@@ -20,4 +21,5 @@ __all__ = [
     "StageRepository",
     "TeamRepository",
     "TourEditionRepository",
+    "WeatherRepository",
 ]

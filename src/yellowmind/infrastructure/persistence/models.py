@@ -188,6 +188,9 @@ class WeatherModel(Base):
     temperature_c: Mapped[float] = mapped_column(Float, nullable=False)
     wind_speed_kmh: Mapped[float] = mapped_column(Float, nullable=False)
     precipitation_mm: Mapped[float] = mapped_column(Float, nullable=False)
+    location_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False)
 
 
 class RiderRatingModel(Base):

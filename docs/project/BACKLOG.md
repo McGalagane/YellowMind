@@ -100,8 +100,9 @@ Support ingestion of riders, teams, stages, results, weather, and stage profiles
 | **Objective** | Attach historical weather conditions to each stage. |
 | **Description** | Integrate Open-Meteo archive API (or equivalent) using stage date and approximate location. Temperature, wind, precipitation. |
 | **Acceptance criteria** | Weather record linked to every stage in TDF 2023; missing geo data logged, not silently skipped. |
-| **Technical notes** | Stage start/finish coordinates from profile or manual seed for MVP. |
+| **Technical notes** | Finish places from the overview Course column; Open-Meteo geocode + Wikipedia/Wikidata coordinate fallback. Provenance columns on `weather`. GitHub #36. |
 | **Dependencies** | M2-03 |
+| **Status** | Done — #36 |
 | **Labels** | `milestone-2`, `area:data`, `complexity:M` |
 
 ### Issue M2-06: Prefect orchestration for ingestion flows

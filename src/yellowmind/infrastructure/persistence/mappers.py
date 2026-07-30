@@ -12,6 +12,7 @@ from yellowmind.domain.entities import (
     StageType,
     Team,
     TourEdition,
+    Weather,
 )
 from yellowmind.domain.value_objects import (
     Abandonment,
@@ -27,6 +28,7 @@ from yellowmind.infrastructure.persistence.models import (
     StageModel,
     TeamModel,
     TourEditionModel,
+    WeatherModel,
 )
 
 
@@ -210,4 +212,32 @@ def gc_standing_to_model(standing: GcStanding) -> GcStandingModel:
         rank=standing.rank,
         time=standing.time,
         time_gap_seconds=standing.time_gap_seconds,
+    )
+
+
+def weather_to_domain(model: WeatherModel) -> Weather:
+    """Convert a weather ORM model to a domain entity."""
+    return Weather(
+        id=model.id,
+        stage_id=model.stage_id,
+        temperature_c=model.temperature_c,
+        wind_speed_kmh=model.wind_speed_kmh,
+        precipitation_mm=model.precipitation_mm,
+        location_name=model.location_name,
+        latitude=model.latitude,
+        longitude=model.longitude,
+    )
+
+
+def weather_to_model(weather: Weather) -> WeatherModel:
+    """Convert a weather domain entity to an ORM model."""
+    return WeatherModel(
+        id=weather.id,
+        stage_id=weather.stage_id,
+        temperature_c=weather.temperature_c,
+        wind_speed_kmh=weather.wind_speed_kmh,
+        precipitation_mm=weather.precipitation_mm,
+        location_name=weather.location_name,
+        latitude=weather.latitude,
+        longitude=weather.longitude,
     )
