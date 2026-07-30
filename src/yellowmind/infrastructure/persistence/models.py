@@ -5,7 +5,18 @@ from __future__ import annotations
 from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from yellowmind.infrastructure.persistence.base import Base
@@ -24,38 +35,73 @@ class TourEditionModel(Base):
 
     teams: Mapped[list[TeamModel]] = relationship(back_populates="tour_edition")
     stages: Mapped[list[StageModel]] = relationship(back_populates="tour_edition")
+    participations: Mapped[list[RiderParticipationModel]] = relationship(
+        back_populates="tour_edition"
+    )
 
 
 class TeamModel(Base):
-    """ORM model for teams."""
+    """ORM model for teams, recorded once per edition."""
 
     __tablename__ = "teams"
+    __table_args__ = (
+        UniqueConstraint("tour_edition_id", "source_slug", name="uq_teams_edition_slug"),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     tour_edition_id: Mapped[UUID] = mapped_column(
         Uuid, ForeignKey("tour_editions.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    nationality: Mapped[str] = mapped_column(String(3), nullable=False)
+    source_slug: Mapped[str] = mapped_column(String(255), nullable=False)
+    nationality: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     tour_edition: Mapped[TourEditionModel] = relationship(back_populates="teams")
-    riders: Mapped[list[RiderModel]] = relationship(back_populates="team")
+    participations: Mapped[list[RiderParticipationModel]] = relationship(back_populates="team")
 
 
 class RiderModel(Base):
-    """ORM model for riders."""
+    """ORM model for riders, independent of any edition."""
 
     __tablename__ = "riders"
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
-    team_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("teams.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    birth_date: Mapped[date] = mapped_column(Date, nullable=False)
-    nationality: Mapped[str] = mapped_column(String(3), nullable=False)
-    pcs_slug: Mapped[str] = mapped_column(String(255), nullable=False)
+    nationality: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Unique so ingestion can recognise a rider stored from an earlier edition.
+    source_slug: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    team: Mapped[TeamModel] = relationship(back_populates="riders")
+    participations: Mapped[list[RiderParticipationModel]] = relationship(back_populates="rider")
     results: Mapped[list[RaceResultModel]] = relationship(back_populates="rider")
+
+
+class RiderParticipationModel(Base):
+    """ORM model linking a rider to a team for one edition."""
+
+    __tablename__ = "rider_participations"
+    __table_args__ = (
+        UniqueConstraint("tour_edition_id", "rider_id", name="uq_participation_edition_rider"),
+        UniqueConstraint("tour_edition_id", "bib_number", name="uq_participation_edition_bib"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    tour_edition_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("tour_editions.id"), nullable=False
+    )
+    rider_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("riders.id"), nullable=False)
+    team_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("teams.id"), nullable=False)
+    bib_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    final_gc_position: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Null together when the rider finished.
+    abandonment_kind: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    abandonment_stage: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_young_rider: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    tour_edition: Mapped[TourEditionModel] = relationship(back_populates="participations")
+    rider: Mapped[RiderModel] = relationship(back_populates="participations")
+    team: Mapped[TeamModel] = relationship(back_populates="participations")
 
 
 class StageModel(Base):
