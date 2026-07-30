@@ -2,13 +2,17 @@
 
 Core entities and their relationships for YellowMind.
 
+`Rider` holds identity only, while `RiderParticipation` holds the facts that are true of a rider for one edition: team, bib number, age, and how the race ended. See [ADR-009](../adr/009-rider-identity-and-participation.md) for why the two are separate.
+
 ## ERD
 
 ```mermaid
 erDiagram
     TourEdition ||--o{ Stage : contains
     TourEdition ||--o{ Team : participates
-    Team ||--o{ Rider : employs
+    TourEdition ||--o{ RiderParticipation : registers
+    Rider ||--o{ RiderParticipation : enters
+    Team ||--o{ RiderParticipation : fields
     Stage ||--|| StageProfile : has
     Stage ||--o| Weather : has
     Stage ||--o{ RaceResult : produces
@@ -47,16 +51,29 @@ erDiagram
         uuid id PK
         uuid tour_edition_id FK
         string name
-        string nationality
+        string source_slug
+        string nationality "nullable"
     }
 
     Rider {
         uuid id PK
-        uuid team_id FK
         string name
-        date birth_date
         string nationality
-        string pcs_slug
+        string source_slug UK
+        date birth_date "nullable"
+    }
+
+    RiderParticipation {
+        uuid id PK
+        uuid tour_edition_id FK
+        uuid rider_id FK
+        uuid team_id FK
+        int bib_number
+        int age "nullable"
+        int final_gc_position "nullable"
+        string abandonment_kind "nullable"
+        int abandonment_stage "nullable"
+        bool is_young_rider
     }
 
     RaceResult {
@@ -120,7 +137,7 @@ erDiagram
 
 | Entity group | Primary store | Rationale |
 |-------------|---------------|-----------|
-| TourEdition, Stage, Rider, Team, RaceResult | PostgreSQL | Operational queries, API serving |
+| TourEdition, Stage, Rider, RiderParticipation, Team, RaceResult | PostgreSQL | Operational queries, API serving |
 | Feature matrices, training data | DuckDB / Parquet | Columnar scans, reproducible ML |
 | Model artifacts | MLflow | Versioned experiments and promotion |
 | Predictions, Simulations | PostgreSQL | Audit trail, API history |
