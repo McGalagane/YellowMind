@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 
 from yellowmind.domain.entities import StageType
-from yellowmind.infrastructure.ingestion.wikipedia.parsing import StageParseError, parse_stages
+from yellowmind.infrastructure.ingestion.wikipedia.parsing import (
+    StageParseError,
+    parse_stage_finishes,
+    parse_stages,
+)
 
 _FIXTURE = Path(__file__).parents[5] / "fixtures" / "wikipedia" / "route_stages_sample.html"
 
@@ -160,3 +164,32 @@ def test_rejects_an_impossible_date() -> None:
 
     with pytest.raises(StageParseError, match="Invalid date"):
         parse_stages(html, 2023)
+
+
+def test_reads_finish_places_from_course_links() -> None:
+    finishes = parse_stage_finishes(_FIXTURE.read_text())
+
+    by_number = {f.stage_number: f for f in finishes}
+    assert by_number[1].finish_name == "Bilbao"
+    assert by_number[1].finish_slug == "Bilbao"
+    assert by_number[2].finish_name == "San Sebastián"
+    assert by_number[2].finish_slug == "San_Sebastián"
+    assert by_number[3].finish_name == "Bayonne"
+    assert by_number[7].finish_slug == "Alpe_d'Huez"
+
+
+def test_plain_text_finish_after_to_has_empty_slug() -> None:
+    """2024 stage 21 writes Nice without a wikilink."""
+    html = _route(
+        """
+        <tr><th>1</th><td>21 July</td>
+            <td><a href="./Monaco">Monaco</a> to Nice</td>
+            <td>100 km</td><td></td><td>Flat stage</td><td>X</td></tr>
+        """
+    )
+
+    finishes = parse_stage_finishes(html)
+
+    assert len(finishes) == 1
+    assert finishes[0].finish_name == "Nice"
+    assert finishes[0].finish_slug == ""
